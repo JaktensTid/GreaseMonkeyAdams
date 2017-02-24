@@ -65,31 +65,40 @@ function getDataFromDocument(doc){
   return data;
 }
 
-function storeDataAndGoNext(){
+function next(){
   var td = table.children[0].children[1].children[0];
   var a = td.children[3];
   var evt = doc.createEvent ("MouseEvents");
   evt.initEvent ("click", true, true);
   a.dispatchEvent(evt);
-  $("frame[name=contents]").on("load", function () {
-      if(currentPage != maxPage){
-        console.log(currentPage);
-        initVariables();
-        //data.push(getDataFromDocument(doc));
-        storeDataAndGoNext();
-      }
-    });
+  
 }
 
 //Wait while all frames loads
 $(window).on('load', function() {
   initVariables();
   maxPage = parseInt(paginatorContent[paginatorContent.length - 1]);
+  console.log('Max page : ' + maxPage);
+  $("frame[name=contents]").on("load", function () {
+      if(currentPage != maxPage - 1){
+        console.log('Curr ' + currentPage);
+        initVariables();
+        data.push(getDataFromDocument(doc));
+        next();
+        }
+    else
+      {
+        initVariables();
+        data.push(getDataFromDocument(doc));
+        console.log(JSON.stringify(getDataFromDocument(doc)));
+      }
+      });
 if(currentPage == 1)
   {
     if (confirm('Are you about to scrape information to .csv?')) {
-          //data.push(getDataFromDocument(doc));
-          storeDataAndGoNext();
+      console.log('Curr ' + currentPage);
+          data.push(getDataFromDocument(doc));
+          next();
     }
   }
 });
