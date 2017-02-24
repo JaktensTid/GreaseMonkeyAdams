@@ -7,17 +7,14 @@
 // @grant       none
 // ==/UserScript==
 
+// Particular document from frameset
 var doc = undefined;
+// Table with paginator
 var table = undefined;
 var paginatorContent = undefined;
 var maxPage = undefined;
 var currentPage = undefined;
 var data = [];
-
-function sleep(ms) {
-  ms += new Date().getTime();
-  while (new Date() < ms){}
-} 
 
 String.prototype.replaceAll = function(search, replace){
   return this.split(search).join(replace);
@@ -32,37 +29,66 @@ function initVariables(){
 
 //Get data from concrete frame
 function getDataFromDocument(doc){
+  function getValue(id)
+  {
+    var element = doc.getElementById(id);
+    
+    if(element.style.display == 'none')
+      {
+        return '';
+      }
+    
+    return element.children[1].innerText;
+  }
   var data = {};
-  data['docType'] = doc.getElementById('trDocumentType').children[1].innerText;
-  data['modifyDate'] = doc.getElementById('trModifyDate').children[1].innerText;
-  data['recordDate'] = doc.getElementById('trRecordDate').children[1].innerText;
-  data['acknowledgementDate'] = doc.getElementById('trAcknowledgementDate').children[1].innerText;
-  data['grantor'] = doc.getElementById('trGrantor').children[1].innerText;
-  data['grantee'] = doc.getElementById('trGrantee').children[1].innerText;
-  data['bookType'] = doc.getElementById('trBookType').children[1].innerText;
-  data['bookPage'] = doc.getElementById('trBookPage').children[1].innerText;
-  data['numberPages'] = doc.getElementById('trNumberPages').children[1].innerText;
-  data['consideration'] = doc.getElementById('trConsideration').children[1].innerText;
-  data['comments'] = doc.getElementById('trComments').children[1].innerText;
-  data['comments2'] = doc.getElementById('trComments2').children[1].innerText;
-  data['marriageDate'] = doc.getElementById('trMarriageDate').children[1].innerText;
-  data['legal'] = doc.getElementById('trLegal').children[1].innerText;
-  data['address'] = doc.getElementById('trAddress').children[1].innerText;
-  data['caseNumber'] = doc.getElementById('trCaseNumber').children[1].innerText;
-  data['parse1Id'] = doc.getElementById('trParcelId').children[1].innerText;
-  data['furureDocs'] = doc.getElementById('trFutureDocs').children[1].innerText;
-  data['prevDocs'] = doc.getElementById('trPrevDocs').children[1].innerText;
-  data['unresolvedLinks'] = doc.getElementById('trUnresolvedLinks').children[1].innerText;
-  data['relatedDocs'] = doc.getElementById('trRelatedDocs').children[1].innerText;
-  data['docHistory'] = doc.getElementById('trDocHistory').children[1].innerText;
-  data['refNum'] = doc.getElementById('trRefNum').children[1].innerText;
-  data['rerecord'] = doc.getElementById('trRerecord').children[1].innerText;
+  data['docType'] = getValue('trDocumentType');
+  data['modifyDate'] = getValue('trModifyDate');
+  data['recordDate'] = getValue('trRecordDate');
+  data['acknowledgementDate'] = getValue('trAcknowledgementDate');
+  data['grantor'] = getValue('trGrantor');
+  data['grantee'] = getValue('trGrantee');
+  data['bookType'] = getValue('trBookType');
+  data['bookPage'] = getValue('trBookPage');
+  data['numberPages'] = getValue('trNumberPages');
+  data['consideration'] = getValue('trConsideration');
+  data['comments'] = getValue('trComments');
+  data['comments2'] = getValue('trComments2');
+  data['marriageDate'] = getValue('trMarriageDate');
+  data['legal'] = getValue('trLegal');
+  data['address'] = getValue('trAddress');
+  data['caseNumber'] = getValue('trCaseNumber');
+  data['parse1Id'] = getValue('trParcelId');
+  data['furureDocs'] = getValue('trFutureDocs');
+  data['prevDocs'] = getValue('trPrevDocs');
+  data['unresolvedLinks'] = getValue('trUnresolvedLinks');
+  data['relatedDocs'] = getValue('trRelatedDocs');
+  data['docHistory'] = getValue('trDocHistory');
+  data['refNum'] = getValue('trRefNum');
+  data['rerecord'] = getValue('trRerecord');
+  
   for (var p in data) {
     if( data.hasOwnProperty(p) ) {
       data[p] = data[p].replaceAll('\n','');
     } 
   }      
+  
   return data;
+}
+
+function toCsv(array){
+    var keys = Object.keys(array[0]);
+
+    var result = keys.join("\t") + "\n";
+
+    array.forEach(function(obj){
+        keys.forEach(function(k, ix){
+            if (ix) result += "\t";
+            result += obj[k];
+        });
+        result += "\n";
+    });
+
+    return result;
 }
 
 function next(){
@@ -71,32 +97,37 @@ function next(){
   var evt = doc.createEvent ("MouseEvents");
   evt.initEvent ("click", true, true);
   a.dispatchEvent(evt);
-  
 }
 
-//Wait while all frames loads
+// Wait while all frames loads
 $(window).on('load', function() {
   initVariables();
   maxPage = parseInt(paginatorContent[paginatorContent.length - 1]);
-  console.log('Max page : ' + maxPage);
-  $("frame[name=contents]").on("load", function () {
+  
+if(currentPage == 1)
+  {
+    if (confirm('Are you about to scrape information to .csv?')) {
+      
+      // Frame event should be fired only once per load
+      $("frame[name=contents]").on("load", function () {
       if(currentPage != maxPage - 1){
-        console.log('Curr ' + currentPage);
         initVariables();
         data.push(getDataFromDocument(doc));
         next();
         }
-    else
-      {
-        initVariables();
-        data.push(getDataFromDocument(doc));
-        console.log(JSON.stringify(getDataFromDocument(doc)));
-      }
-      });
-if(currentPage == 1)
-  {
-    if (confirm('Are you about to scrape information to .csv?')) {
-      console.log('Curr ' + currentPage);
+      else
+        {
+          initVariables();
+          data.push(getDataFromDocument(doc));
+          csv = toCsv(data);
+          var a = document.createElement('a');
+          a.href  = 'data:attachment/csv,' +  encodeURIComponent(csv);
+          a.target = '_blank';
+          a.download = 'result.csv';
+          document.body.appendChild(a);
+          a.click();
+        }
+        });
           data.push(getDataFromDocument(doc));
           next();
     }
