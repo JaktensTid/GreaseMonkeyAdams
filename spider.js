@@ -6,7 +6,7 @@
 // @version     1
 // @grant       none
 // ==/UserScript==
-
+ 
 // Particular document from frameset
 var doc = undefined;
 // Table with paginator
@@ -15,29 +15,29 @@ var paginatorContent = undefined;
 var maxPage = undefined;
 var currentPage = undefined;
 var data = [];
-
+ 
 String.prototype.replaceAll = function(search, replace){
   return this.split(search).join(replace);
 }
-
+ 
 function initVariables(){
   doc = window.frames[1].document;
   table = doc.getElementById('dgNav');
   paginatorContent = table.childNodes[1].children[1].innerText.replace('Prev', '').replace('Next','').replace('of','').split(' ');
   currentPage = parseInt(paginatorContent[0]);
 }
-
+ 
 //Get data from concrete frame
 function getDataFromDocument(doc){
   function getValue(id)
   {
     var element = doc.getElementById(id);
-    
+   
     if(element.style.display == 'none')
       {
         return '';
       }
-    
+   
     return element.children[1].innerText;
   }
   var data = {};
@@ -65,32 +65,37 @@ function getDataFromDocument(doc){
   data['docHistory'] = getValue('trDocHistory');
   data['refNum'] = getValue('trRefNum');
   data['rerecord'] = getValue('trRerecord');
-  
+ 
   for (var p in data) {
     if( data.hasOwnProperty(p) ) {
       data[p] = data[p].replaceAll('\n','');
-    } 
+    }
   }      
-  
+ 
   return data;
 }
-
+ 
 function toCsv(array){
     var keys = Object.keys(array[0]);
-
-    var result = keys.join("\t") + "\n";
-
+ 
+    var result = '"' + keys.join('","') + '"' + '\n';
+ 
     array.forEach(function(obj){
         keys.forEach(function(k, ix){
-            if (ix) result += "\t";
-            result += obj[k];
+            if (ix == 0){
+            result += '"' + obj[k] + '"';
+        }
+        else
+        {
+            result += ',"' + obj[k] + '"';
+        }
         });
         result += "\n";
     });
-
+ 
     return result;
 }
-
+ 
 function next(){
   var td = table.children[0].children[1].children[0];
   var a = td.children[3];
@@ -98,16 +103,16 @@ function next(){
   evt.initEvent ("click", true, true);
   a.dispatchEvent(evt);
 }
-
+ 
 // Wait while all frames loads
 $(window).on('load', function() {
   initVariables();
   maxPage = parseInt(paginatorContent[paginatorContent.length - 1]);
-  
+ 
 if(currentPage == 1)
   {
     if (confirm('Are you about to scrape information to .csv?')) {
-      
+     
       // Frame event should be fired only once per load
       $("frame[name=contents]").on("load", function () {
       if(currentPage != maxPage - 1){
