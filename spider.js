@@ -41,6 +41,22 @@ function getDataFromDocument(doc){
     return element.children[1].innerText;
   }
   var data = {};
+  data['instrument'] = getValue('lblCfn');
+  var l = data['instrument'].length;
+  data['recep'] = data['instrument'].substring(l - 8, l - 1);
+  var toSubstring = 0;
+  for(var i = 0; i < data['recep'].length; i++)
+    {
+      if(data['recep'][i] == '0')
+        {
+          toSubstring++;
+        }
+      else
+        break;
+    }
+  data['recep'] = data['recep'].substring(toSubstring, data['recep'].length - 1);
+  data['year'] = data['instrument'].substring(0, 5);
+  data['Reception No'] = data['year'] + '-' + data['recep'];
   data['docType'] = getValue('trDocumentType');
   data['modifyDate'] = getValue('trModifyDate');
   data['recordDate'] = getValue('trRecordDate');
@@ -49,6 +65,8 @@ function getDataFromDocument(doc){
   data['grantee'] = getValue('trGrantee');
   data['bookType'] = getValue('trBookType');
   data['bookPage'] = getValue('trBookPage');
+  data['book'] = $.trim(data['bookPage'].split('/')[0])
+  data['page'] = $.trim(data['bookPage'].split('/')[1])
   data['numberPages'] = getValue('trNumberPages');
   data['consideration'] = getValue('trConsideration');
   data['comments'] = getValue('trComments');
