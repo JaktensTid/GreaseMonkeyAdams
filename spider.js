@@ -40,10 +40,37 @@ function getDataFromDocument(doc){
    
     return element.children[1].innerText;
   }
+  
+  function getSecTwpRng(legal)
+  {
+    
+    var sec = '';
+    var twp = '';
+    var rng = '';
+    var lower = legal.toLowerCase();
+    var normalize = (index, f, to) => {return $.trim(lower.substring(index + f, index + to).replace('*', ''));}
+    var secIndex = lower.indexOf('sec ');
+    if(secIndex != -1)
+      {
+        sec = normalize(secIndex, 3, 6);
+      }
+    var twpIndex = lower.indexOf('tp ');
+    if(twpIndex != -1)
+      {
+        twp = normalize(twpIndex, 2, 5);
+      }
+    var rngIndex = lower.indexOf('rng ');
+    if(rngIndex != -1)
+      {
+        rng = normalize(rngIndex, 3, 6);
+      }
+    return [sec, twp, rng];
+  }
+  
   var data = {};
-  data['instrument'] = getValue('lblCfn');
+  data['instrument'] = doc.getElementById('lblCfn').innerText;
   var l = data['instrument'].length;
-  data['recep'] = data['instrument'].substring(l - 8, l - 1);
+  data['recep'] = data['instrument'].substring(l - 8, l + 1);
   var toSubstring = 0;
   for(var i = 0; i < data['recep'].length; i++)
     {
@@ -55,7 +82,7 @@ function getDataFromDocument(doc){
         break;
     }
   data['recep'] = data['recep'].substring(toSubstring, data['recep'].length - 1);
-  data['year'] = data['instrument'].substring(0, 5);
+  data['year'] = data['instrument'].substring(0, 4);
   data['Reception No'] = data['year'] + '-' + data['recep'];
   data['docType'] = getValue('trDocumentType');
   data['modifyDate'] = getValue('trModifyDate');
@@ -73,6 +100,10 @@ function getDataFromDocument(doc){
   data['comments2'] = getValue('trComments2');
   data['marriageDate'] = getValue('trMarriageDate');
   data['legal'] = getValue('trLegal');
+  var coords = getSecTwpRng(data['legal']);
+  data['sec'] = coords[0];
+  data['twp'] = coords[1];
+  data['rng'] = coords[2];
   data['address'] = getValue('trAddress');
   data['caseNumber'] = getValue('trCaseNumber');
   data['parse1Id'] = getValue('trParcelId');
