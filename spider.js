@@ -40,29 +40,33 @@ function getDataFromDocument(doc){
    
     return element.children[1].innerText;
   }
-  
+ 
   function getSecTwpRng(legal)
   {
     var sec = '';
     var twp = '';
     var rng = '';
-    var matches = legal.match('[0-9]{1,2}-[0-9]{1,2}-[0-9]{1,2}');
+    var blk = '';
+    var lot = '';
+    var matches = legal.match('( [0-9]{1,2}-[0-9]{1,2}-[0-9]{1,2})|(^[0-9]{1,2}-[0-9]{1,2}-[0-9]{1,2})');
     if(matches)
       {
-        return matches[0].split('-');
+        return $.trim(matches[0]).split('-');
       }
-    matches = legal.match('[0-9]{1,2} [0-9]{1,2} [0-9]{1,2}');
+    matches = legal.match('( [0-9]{1,2} [0-9]{1,2} [0-9]{1,2})|(^[0-9]{1,2} [0-9]{1,2} [0-9]{1,2})');
     if(matches)
       {
-        return matches[0].split(' ');
+        return $.trim(matches[0]).split(' ');
       }
     var lower = legal.toLowerCase();
-    sec = lower.match('sec [0-9]{1,2}') == null ? '' : lower.match('sec [0-9]{1,2}')[0];
-    twp = lower.match('tp [0-9]{1,2}') == null ? '' : lower.match('tp [0-9]{1,2}')[0];
-    rng = lower.match('rng [0-9]{1,2}') == null ? '' : lower.match('rng [0-9]{1,2}')[0];
-    return [sec, twp, rng];
+    sec = lower.match('sec [0-9]{1,2}') == null ? '' : lower.match('sec [0-9]{1,2}')[0].replace('sec ', '');
+    twp = lower.match('tp [0-9]{1,2}') == null ? '' : lower.match('tp [0-9]{1,2}')[0].replace('tp ', '');
+    rng = lower.match('rng [0-9]{1,2}') == null ? '' : lower.match('rng [0-9]{1,2}')[0].replace('rng ', '');
+    blk = lower.match('blk [0-9]{1,2}') == null ? '' : lower.match('blk [0-9]{1,2}')[0].replace('blk ', '');
+    lot = lower.match('(lot [0-9]{1,2})|(lots [0-9]{1,2})') == null ? '' : lower.match('(lot [0-9]{1,2})|(lots [0-9]{1,2})')[0].replace('lot ', '').replace('lots ', '');
+    return [sec, twp, rng, blk, lot];
   }
-  
+ 
   var data = {};
   data['instrument'] = doc.getElementById('lblCfn').innerText;
   var l = data['instrument'].length;
@@ -79,7 +83,7 @@ function getDataFromDocument(doc){
     }
   data['recep'] = data['recep'].substring(toSubstring);
   data['year'] = data['instrument'].substring(0, 4);
-  data['Reception No'] = data['year'] + '-' + data['recep'];
+  data['Reception No'] = data['recep'] + '-' + data['year'];
   data['docType'] = getValue('trDocumentType');
   data['modifyDate'] = getValue('trModifyDate');
   data['recordDate'] = getValue('trRecordDate');
@@ -88,8 +92,8 @@ function getDataFromDocument(doc){
   data['grantee'] = getValue('trGrantee');
   data['bookType'] = getValue('trBookType');
   data['bookPage'] = getValue('trBookPage');
-  data['book'] = $.trim(data['bookPage'].split('/')[0])
-  data['page'] = $.trim(data['bookPage'].split('/')[1])
+  data['book'] = $.trim(data['bookPage'].split('/')[0]);
+  data['page'] = $.trim(data['bookPage'].split('/')[1]);
   data['numberPages'] = getValue('trNumberPages');
   data['consideration'] = getValue('trConsideration');
   data['comments'] = getValue('trComments');
@@ -100,6 +104,8 @@ function getDataFromDocument(doc){
   data['sec'] = coords[0];
   data['twp'] = coords[1];
   data['rng'] = coords[2];
+  data['block'] = coords[3];
+  data['lot'] = coords[4];
   data['address'] = getValue('trAddress');
   data['caseNumber'] = getValue('trCaseNumber');
   data['parse1Id'] = getValue('trParcelId');
@@ -113,7 +119,9 @@ function getDataFromDocument(doc){
  
   for (var p in data) {
     if( data.hasOwnProperty(p) ) {
+      if(data[p] !== undefined){
       data[p] = data[p].replaceAll('\n','');
+}
     }
   }      
  
