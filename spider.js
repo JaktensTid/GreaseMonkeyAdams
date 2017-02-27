@@ -48,6 +48,7 @@ function getDataFromDocument(doc){
     var rng = '';
     var blk = '';
     var lot = '';
+    var subdivision = '';
     var matches = legal.match('( [0-9]{1,2}-[0-9]{1,2}-[0-9]{1,2})|(^[0-9]{1,2}-[0-9]{1,2}-[0-9]{1,2})');
     if(matches)
       {
@@ -63,8 +64,16 @@ function getDataFromDocument(doc){
     twp = lower.match('tp [0-9]{1,2}') == null ? '' : lower.match('tp [0-9]{1,2}')[0].replace('tp ', '');
     rng = lower.match('rng [0-9]{1,2}') == null ? '' : lower.match('rng [0-9]{1,2}')[0].replace('rng ', '');
     blk = lower.match('blk [0-9]{1,2}') == null ? '' : lower.match('blk [0-9]{1,2}')[0].replace('blk ', '');
-    lot = lower.match('(lot [0-9]{1,2})|(lots [0-9]{1,2})') == null ? '' : lower.match('(lot [0-9]{1,2})|(lots [0-9]{1,2})')[0].replace('lot ', '').replace('lots ', '');
-    return [sec, twp, rng, blk, lot];
+    lot = lower.match('lot[s]? [0-9]{1,2}') == null ? '' : lower.match('lot[s]? [0-9]{1,2}')[0].replace('lot ', '').replace('lots ', '');
+    if(lot != '' & blk != '')
+    {
+    	subdivision = lower.match('blk [0-1]{1,2} .*') == null ? '' : lower.match('blk [0-1]{1,2} .*')[0].replace('blk [0-1]{1,2} ', '');
+    }
+    else if (lot != '')
+    {
+    	subdivision = lower.match('lot[s]? [0-1]{1,2} .*') == null ? '' : lower.match('lot[s]? [0-1]{1,2} .*')[0].replace('lot[s]? [0-1]{1,2} ', '');
+    }
+    return [sec, twp, rng, blk, lot, subdivision];
   }
  
   var data = {};
@@ -106,6 +115,7 @@ function getDataFromDocument(doc){
   data['rng'] = coords[2];
   data['block'] = coords[3];
   data['lot'] = coords[4];
+  data['subdivision'] = coords[5];
   data['address'] = getValue('trAddress');
   data['caseNumber'] = getValue('trCaseNumber');
   data['parse1Id'] = getValue('trParcelId');
