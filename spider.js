@@ -125,15 +125,7 @@ function getDataFromDocument(doc){
   data['relatedDocs'] = getValue('trRelatedDocs');
   data['docHistory'] = getValue('trDocHistory');
   data['refNum'] = getValue('trRefNum');
-  data['rerecord'] = getValue('trRerecord');
- 
-  for (var p in data) {
-    if( data.hasOwnProperty(p) ) {
-      if(data[p] !== undefined){
-      data[p] = data[p].replaceAll('\n','');
-}
-    }
-  }      
+  data['rerecord'] = getValue('trRerecord');     
  
   return data;
 }
@@ -146,11 +138,11 @@ function toCsv(array){
     array.forEach(function(obj){
         keys.forEach(function(k, ix){
             if (ix == 0){
-            result += '"' + obj[k] + '"';
+            result += '"' + obj[k].replace('\n', '') + '"';
         }
         else
         {
-            result += ',"' + obj[k] + '"';
+            result += ',"' + obj[k].replace('\n', '') + '"';
         }
         });
         result += "\n";
