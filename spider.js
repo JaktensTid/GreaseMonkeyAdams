@@ -43,6 +43,8 @@ function getDataFromDocument(doc){
  
   function getSecTwpRng(legal)
   {
+    var lotReg = '(lot[s]? [0-9]{1,2}&[0-9]{1,2})|(lot[s]? [0-9]{1,2}-[0-9]{1,2})|(lot[s]? [0-9]{1,2})';
+    var blkReg = '(blk[s]? [0-9]{1,2}&[0-9]{1,2})|(blk[s]? [0-9]{1,2}-[0-9]{1,2})|(blk[s]? [0-9]{1,2})';
     var sec = '';
     var twp = '';
     var rng = '';
@@ -63,23 +65,23 @@ function getDataFromDocument(doc){
     sec = lower.match('sec [0-9]{1,2}') == null ? '' : lower.match('sec [0-9]{1,2}')[0].replace('sec ', '');
     twp = lower.match('tp [0-9]{1,2}') == null ? '' : lower.match('tp [0-9]{1,2}')[0].replace('tp ', '');
     rng = lower.match('rng [0-9]{1,2}') == null ? '' : lower.match('rng [0-9]{1,2}')[0].replace('rng ', '');
-    blk = lower.match('blk [0-9]{1,2}') == null ? '' : lower.match('blk [0-9]{1,2}')[0].replace('blk ', '');
-    lot = lower.match('lot[s]? [0-9]{1,2}') == null ? '' : lower.match('lot[s]? [0-9]{1,2}')[0].replace('lot ', '').replace('lots ', '');
+    blk = lower.match(blkReg) == null ? '' : lower.match(blkReg)[0].replace('blk ', '');
+    lot = lower.match(lotReg) == null ? '' : lower.match(lotReg)[0].replace('lot ', '').replace('lots ', '');
     if(lot != '' & blk != '')
     {
-    	subdivision = lower.match('blk [0-1]{1,2} .*') == null ? '' : lower.match('blk [0-1]{1,2} .*')[0].replace('blk [0-1]{1,2} ', '');
+        subdivision = lower.match('((' + blkReg + ') .*)') == null ? '' : lower.match('((' + blkReg + ') .*)')[0].replace('blk ' + blk + ' ', '');
     }
     else if (lot != '')
     {
-    	subdivision = lower.match('lot[s]? [0-1]{1,2} .*') == null ? '' : lower.match('lot[s]? [0-1]{1,2} .*')[0].replace('lot[s]? [0-1]{1,2} ', '');
+        subdivision = lower.match('((' + lotReg + ') .*)') == null ? '' : lower.match('((' + lotReg + ') .*)')[0].replace('lot ' + lot + ' ', '').replace('lots ' + lot + ' ', '');
     }
-    return [sec, twp, rng, blk, lot, subdivision];
+    return [sec, twp, rng, blk, lot, subdivision.toUpperCase()];
   }
  
   var data = {};
   data['instrument'] = doc.getElementById('lblCfn').innerText;
   var l = data['instrument'].length;
-  data['recep'] = data['instrument'].substring(l - 8);
+  data['recep'] = data['instrument'].substring(l - 7);
   var toSubstring = 0;
   for(var i = 0; i < data['recep'].length; i++)
     {
@@ -115,7 +117,7 @@ function getDataFromDocument(doc){
   data['rng'] = coords[2];
   data['block'] = coords[3];
   data['lot'] = coords[4];
-  data['subdivision'] = coords[5];
+  data['subdivision'] = coords[5].toUpperCase();
   data['address'] = getValue('trAddress');
   data['caseNumber'] = getValue('trCaseNumber');
   data['parse1Id'] = getValue('trParcelId');
@@ -125,18 +127,23 @@ function getDataFromDocument(doc){
   data['relatedDocs'] = getValue('trRelatedDocs');
   data['docHistory'] = getValue('trDocHistory');
   data['refNum'] = getValue('trRefNum');
-  data['rerecord'] = getValue('trRerecord');     
+  data['rerecord'] = getValue('trRerecord');    
  
   return data;
 }
  
 function toCsv(array){
-    var keys = Object.keys(array[0]);
+    array = remove_duplicates(array);
+    var keys = ['grantor','grantee','Reception No','docType','recordDate','book','page','comments','legal',
+    'sec','twp','rng','block','lot','subdivision','address','futureDocs','prevDocs','unresolvedLinks',
+    'relatedDocs','docHistory','refNum','rerecord','instrument','recep','year','modifyDate',
+    'acknowledgementDate','bookType','bookPage','numberPages','consideration','comments2','marriageDate','caseNumber','parse1Id'];
  
     var result = '"' + keys.join('","') + '"' + '\n';
  
     array.forEach(function(obj){
         keys.forEach(function(k, ix){
+          if(obj[k] == undefined) { obj[k] = '';}
             if (ix == 0){
             result += '"' + obj[k].replace('\n', '') + '"';
         }
@@ -149,6 +156,24 @@ function toCsv(array){
     });
  
     return result;
+}
+ 
+function remove_duplicates(objectsArray) {
+    var usedObjects = {};
+ 
+    for (var i=objectsArray.length - 1;i>=0;i--) {
+        var so = JSON.stringify(objectsArray[i]);
+ 
+        if (usedObjects[so]) {
+            objectsArray.splice(i, 1);
+ 
+        } else {
+            usedObjects[so] = true;          
+        }
+    }
+ 
+    return objectsArray;
+ 
 }
  
 function next(){
