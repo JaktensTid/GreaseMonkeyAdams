@@ -62,9 +62,12 @@ function getDataFromDocument(doc){
         return $.trim(matches[0]).split(' ');
       }
     var lower = legal.toLowerCase();
-    sec = lower.match('sec [0-9]{1,2}') == null ? '' : lower.match('sec [0-9]{1,2}')[0].replace('sec ', '');
-    twp = lower.match('tp [0-9]{1,2}') == null ? '' : lower.match('tp [0-9]{1,2}')[0].replace('tp ', '');
-    rng = lower.match('rng [0-9]{1,2}') == null ? '' : lower.match('rng [0-9]{1,2}')[0].replace('rng ', '');
+    var secReg = '(sec [0-9]{1,2})|(sec:[0-9]{1,2})';
+    var tpReg = '(tp [0-9]{1,2})|(tp:[0-9]{1,2})';
+    var rngReg = '(rng [0-9]{1,2})|(rng:[0-9]{1,2})';
+    sec = lower.match(secReg) == null ? '' : lower.match(secReg)[0].replace('sec ', '').replace('sec:', '');
+    twp = lower.match(tpReg) == null ? '' : lower.match(tpReg)[0].replace('tp ', '').replace('tp:', '');
+    rng = lower.match(rngReg) == null ? '' : lower.match(rngReg)[0].replace('rng ', '').replace('rng:', '');
     blk = lower.match(blkReg) == null ? '' : lower.match(blkReg)[0].replace('blk ', '');
     lot = lower.match(lotReg) == null ? '' : lower.match(lotReg)[0].replace('lot ', '').replace('lots ', '');
     if(lot != '' & blk != '')
